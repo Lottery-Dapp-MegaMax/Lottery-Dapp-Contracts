@@ -6,11 +6,15 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {MyPool} from "./MyPool.sol";
 
 contract Vault is ERC4626 {
     using TwabLib for TwabEvent[];
 
     mapping(uint256 id => mapping(address owner => TwabEvent[])) private events;
+    
+    MyPool[] public activePool;
+    bytes[] proposalPool;
 
     constructor(IERC20 _asset) ERC4626(_asset) ERC20("Token", "Token") {}
 
@@ -30,7 +34,6 @@ contract Vault is ERC4626 {
 
         uint256 shares = previewDeposit(assets);
         _deposit(_msgSender(), receiver, assets, shares);
-
         events[id][receiver].addTwabEvent(TwabEventType.Deposit, block.timestamp, balanceOf(receiver));
         return shares;
     }
@@ -50,7 +53,14 @@ contract Vault is ERC4626 {
         _withdraw(_msgSender(), receiver, owner, assets, shares);
 
         events[id][owner].addTwabEvent(TwabEventType.Withdraw, block.timestamp, balanceOf(owner));
+
         return shares;
     }
+
+    function proposePool(bytes contractByteCode) public {
+        proposalPool.push(contractByteCode);
+    }
+
+    function deployPool() 
 }
 

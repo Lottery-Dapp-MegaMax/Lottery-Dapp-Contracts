@@ -6,6 +6,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract MyPool is Ownable {
     uint256 private startTime;
     uint256 private endTime;
+    uint256 private immutable id;
+
+    constructor(uint256 _id) {
+        id = _id;
+    } 
 
     function startLottery() public onlyOwner {
         startTime = block.timestamp;
