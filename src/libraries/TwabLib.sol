@@ -20,7 +20,7 @@ library TwabLib {
         returns (int256)
     {
         int256 lo = -1;
-        int256 hi = int256(events.length);
+        int256 hi = int256(events.length) - 1;
         while (lo < hi) {
             int256 mid = (hi + lo + 1) / 2;
             if (events[uint256(mid)].timestamp <= timestamp) {
