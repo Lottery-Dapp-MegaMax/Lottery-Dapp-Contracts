@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract AbstractPool is Ownable {
-    uint256 private startTime;
-    uint256 private endTime;
-    uint256 private createdTime;
+    uint256 public startTime;
+    uint256 public endTime;
+    uint256 public immutable createdTime;
 
     constructor() Ownable(msg.sender) {
         createdTime = block.timestamp;
@@ -17,17 +17,5 @@ abstract contract AbstractPool is Ownable {
         endTime = startTime + runningTime;
     }
 
-    function getWinner(address[] memory _players, uint256 totalPrized) public virtual view returns (uint256[] memory) {}
-
-    function getStartTime() public view returns (uint256) {
-        return startTime;
-    }
-
-    function getEndTime() public view returns (uint256) {
-        return endTime;
-    }
-
-    function getCreatedTime() public view returns (uint256) {
-        return createdTime;
-    }
+    function getWinner(address[] memory _players, uint256 totalPrize) public virtual view returns (uint256[] memory) {}
 }

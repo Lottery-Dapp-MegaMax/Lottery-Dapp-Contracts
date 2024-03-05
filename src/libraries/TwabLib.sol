@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-enum TwabEventType {
+enum PoolEventType {
     Deposit,
     Withdraw
 }
 
-struct TwabEvent {
-    TwabEventType eventType;
+struct PoolEvent {
+    PoolEventType eventType;
     uint256 timestamp;
     uint256 cumulativeBalance;
     uint256 balance;
 }
 
 library TwabLib {
-    function getLastEventIndexUntil(TwabEvent[] storage events, uint256 timestamp)
+    function getLastEventIndexUntil(PoolEvent[] storage events, uint256 timestamp)
         internal
         view
         returns (int256)
@@ -32,7 +32,7 @@ library TwabLib {
         return lo;
     }
 
-    function getCummulativeBalanceUntil(TwabEvent[] storage events, uint256 timestamp)
+    function getCummulativeBalanceUntil(PoolEvent[] storage events, uint256 timestamp)
         internal
         view
         returns (uint256)
@@ -45,7 +45,7 @@ library TwabLib {
             + events[uint256(index)].balance * (timestamp - events[uint256(index)].timestamp);
     }
 
-    function getCummulativeBalanceBetween(TwabEvent[] storage events, uint256 startTime, uint256 endTime)
+    function getCummulativeBalanceBetween(PoolEvent[] storage events, uint256 startTime, uint256 endTime)
         internal
         view
         returns (uint256)
@@ -53,18 +53,18 @@ library TwabLib {
         return getCummulativeBalanceUntil(events, endTime) - getCummulativeBalanceUntil(events, startTime);
     }
 
-    function addTwabEvent(TwabEvent[] storage events, TwabEventType eventType, uint256 timestamp, uint256 balance)
+    function addPoolEvent(PoolEvent[] storage events, PoolEventType eventType, uint256 timestamp, uint256 balance)
         internal
     {
         if (events.length == 0) {
-            events.push(TwabEvent({eventType: eventType, timestamp: timestamp, cumulativeBalance: 0, balance: balance}));
+            events.push(PoolEvent({eventType: eventType, timestamp: timestamp, cumulativeBalance: 0, balance: balance}));
         } else {
             uint256 lastCumulativeBalance = events[events.length - 1].cumulativeBalance;
             uint256 lastBalance = events[events.length - 1].balance;
             uint256 lastTimestamp = events[events.length - 1].timestamp;
             uint256 newCumulativeBalance = lastCumulativeBalance + lastBalance * (timestamp - lastTimestamp);
             events.push(
-                TwabEvent({
+                PoolEvent({
                     eventType: eventType,
                     timestamp: timestamp,
                     cumulativeBalance: newCumulativeBalance,
