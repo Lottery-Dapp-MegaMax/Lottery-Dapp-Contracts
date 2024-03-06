@@ -16,7 +16,8 @@ contract DeployScript is Script {
         conflux_testnet_usdt_contract = IERC20(0x7d682e65EFC5C13Bf4E394B8f376C48e6baE0355);
         myVault = new Vault(conflux_testnet_usdt_contract);
         console.log("Vault created at: %s", address(myVault));
-        MyPool myPool = new MyPool();
+        MyPool myPool = new MyPool(address(myVault));
+        myVault.addNewPool(address(myPool), 120);
         vm.stopBroadcast();
     }
 

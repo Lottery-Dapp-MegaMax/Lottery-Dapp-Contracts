@@ -17,9 +17,8 @@ contract VaultTest is Test {
 
     function setUp() public {
         vault = new Vault(USDT_Contract);
-        myPool = new MyPool();
-        vault.addNewPool(address(myPool));
-        myPool.startLottery(100);
+        myPool = new MyPool(address(vault));
+        vault.addNewPool(address(myPool), 100);
         console.log("USDT_Contract.balanceOf(myWallet): ", USDT_Contract.balanceOf(myWallet));
     }
 
@@ -48,5 +47,12 @@ contract VaultTest is Test {
         vault.withdraw(myPoolAddress, 10 * (10 ** 18), myWallet, myWallet);
         skip(50);
         console.log("Share balances in vault for myPool: ", vault.getCumulativeDepositInPool(myPoolAddress, myWallet));
+    }
+
+    function testActivePool() public {
+        MyPool myPool1 = new MyPool(address(vault));
+        MyPool myPool2 = new MyPool(address(vault));
+        vault.addNewPool(address(myPool1), 100);
+        vault.addNewPool(address(myPool2), 100);
     }
 }
