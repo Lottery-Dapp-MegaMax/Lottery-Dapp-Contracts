@@ -17,7 +17,7 @@ contract DeployScript is Script {
         myVault = new Vault(conflux_testnet_usdt_contract);
         console.log("Vault created at: %s", address(myVault));
         MyPool myPool = new MyPool(address(myVault));
-        myVault.addNewPool(address(myPool), 120);
+        myVault.addNewPool(address(myPool), 5 days);
         vm.stopBroadcast();
     }
 

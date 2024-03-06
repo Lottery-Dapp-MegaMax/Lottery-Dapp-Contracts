@@ -33,9 +33,11 @@ contract VaultTest is Test {
         // test
         console.log("USDT balance: ", USDT_Contract.balanceOf(myWallet));
         console.log("Share balances in vault: ", vault.balanceOf(myWallet));
-        console.log("Start time: ", myPool.startTime());
-        console.log("End time: ", myPool.endTime());
-        console.log("Created time: ", myPool.createdTime());
+        console.log("Started time: ", myPool.startedTime());
+        skip(100);
+        console.log("Draw times: ", myPool.drawTimes());
+        console.log("Start time: ", myPool.getCurrentStartTime());
+        console.log("End time: ", myPool.getCurrentEndTime());
         skip(50);
         console.log("Current time: ", block.timestamp);
         // PoolEvent[] memory events = vault.getEvents(myPoolAddress, myWallet);
