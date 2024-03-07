@@ -18,7 +18,7 @@ contract VaultTest is Test {
     function setUp() public {
         vault = new Vault(USDT_Contract);
         myPool = new MyPool(address(vault));
-        vault.addNewPool(address(myPool), 100);
+        vault.addNewPool(address(myPool), 4 days);
         console.log("USDT_Contract.balanceOf(myWallet): ", USDT_Contract.balanceOf(myWallet));
     }
 
@@ -54,7 +54,7 @@ contract VaultTest is Test {
     function testActivePool() public {
         MyPool myPool1 = new MyPool(address(vault));
         MyPool myPool2 = new MyPool(address(vault));
-        vault.addNewPool(address(myPool1), 100);
-        vault.addNewPool(address(myPool2), 100);
+        vault.addNewPool(address(myPool1), 4 days);
+        vault.addNewPool(address(myPool2), 4 days);
     }
 }
