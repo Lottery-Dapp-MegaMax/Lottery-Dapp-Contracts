@@ -46,15 +46,19 @@ contract VaultTest is Test {
         // }
         console.log("Share balances in vault for myPool: ", vault.getCumulativeDepositInPool(myPoolAddress, myWallet));
         hoax(myWallet);
-        vault.withdraw(myPoolAddress, 10 * (10 ** 18), myWallet, myWallet);
+        vault.withdraw(myPoolAddress, 10 ether, myWallet, myWallet);
         skip(50);
         console.log("Share balances in vault for myPool: ", vault.getCumulativeDepositInPool(myPoolAddress, myWallet));
     }
 
     function testActivePool() public {
-        MyPool myPool1 = new MyPool(address(vault));
-        MyPool myPool2 = new MyPool(address(vault));
-        vault.addNewPool(address(myPool1), 4 days);
-        vault.addNewPool(address(myPool2), 4 days);
+        myPool = new MyPool(address(vault));
+        vault.blacklist(address(myPool));
+        address[] memory blacklistedPool = vault.getBlacklistedPools();
+        console.log("Blacklisted pool: ", blacklistedPool.length);
+        for (uint256 i = 0; i < blacklistedPool.length; i++) {
+            console.log("Blacklisted pool: ", blacklistedPool[i]);
+        }
+        
     }
 }
