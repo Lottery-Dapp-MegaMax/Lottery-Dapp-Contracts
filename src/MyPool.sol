@@ -11,14 +11,15 @@ contract MyPool is AbstractPool {
         // constructor body
     }
 
-    function getWinnerWithRandomNumber(address[] memory players, uint256[] memory shares, uint256 totalPrize, uint256 randomNumber) public override pure returns (uint256[] memory) {
-        uint256[] memory winners = new uint256[](players.length);
+    function getWinnerWithRandomNumber(address[] memory players, uint256[] memory shares, uint256 totalPrize, uint256 randomNumber) public override pure returns (Winner[] memory) {
+        Winner[] memory winners = new Winner[](players.length);
         uint256 totalShares = 0;
         for (uint256 i = 0; i < players.length; i++) {
             totalShares += shares[i];
         }
         for (uint256 i = 0; i < players.length; i++) {
-            winners[i] = (shares[i] * totalPrize) / totalShares;
+            winners[i].player = players[i];
+            winners[i].prize = (shares[i] * totalPrize) / totalShares;
         }
         return winners;
     }

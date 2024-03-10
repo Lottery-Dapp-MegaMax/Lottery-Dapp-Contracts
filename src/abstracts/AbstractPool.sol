@@ -16,15 +16,24 @@ abstract contract AbstractPool is Ownable, ERC4626 {
     uint256 public runningTime;
     uint256 public startedTime;
     uint256 public endingTime;
+    uint256 public createdTime;
+    uint256 public numDrawBefore;
     bool private lastDraw = true;
     mapping(address owner => PoolEvent[]) public poolEvents;
     EnumerableSet.AddressSet private depositors;
 
-    constructor(address poolManager, IERC20 asset_) Ownable(poolManager) ERC4626(asset_) ERC20("LotteryPool", "LP") {
-        runningTime = 0;
+    struct Winner {
+        address player;
+        uint256 prize;
     }
 
-    function startLottery(uint256 _runningTime) public {
+    constructor(address poolManager, IERC20 asset_) Ownable(poolManager) ERC4626(asset_) ERC20("LotteryPool", "LP") {
+        runningTime = 0;
+        numDrawBefore = 0;
+        createdTime = block.timestamp;
+    }
+
+    function startLottery(uint256 _runningTime) public onlyOwner {
         if (runningTime > 0) {
             require(block.timestamp >= startedTime && block.timestamp <= endingTime, "Lottery is running");
             require(lastDraw == true, "Last draw is not finished");
@@ -42,19 +51,25 @@ abstract contract AbstractPool is Ownable, ERC4626 {
     function setLastDraw() public onlyOwner {
         require(lastDraw == false, "Last draw is not finished");
         lastDraw = true;
+        ++ numDrawBefore;
     }
 
-    function getWinnerWithRandomNumber(address[] memory players, uint256[] memory shares, uint256 totalPrize, uint256 randomNumber) public virtual pure returns (uint256[] memory) {
+    function getWinnerWithRandomNumber(address[] memory players, uint256[] memory shares, uint256 totalPrize, uint256 randomNumber) public virtual pure returns (Winner[] memory) {
     }
 
-    function getWinner(uint256 totalPrize, uint256 randomNumber) public view onlyOwner returns (uint256[] memory) {
+    function getWinner(uint256 totalPrize, uint256 randomNumber) public view onlyOwner returns (Winner[] memory) {
         require(block.timestamp >= endingTime, "Lottery is not finished");
         address[] memory players = getDepositors();
         uint256[] memory shares = new uint256[](players.length);
         for (uint256 i = 0; i < players.length; i++) {
             shares[i] = getCurrentCumulativeBalance(players[i]);
         }
-        return getWinnerWithRandomNumber(players, shares, totalPrize, randomNumber);
+        Winner[] memory winners = getWinnerWithRandomNumber(players, shares, totalPrize, randomNumber); 
+        require(winners.length == players.length, "Invalid winner");
+        for (uint256 i = 0; i < winners.length; i++) {
+            require(winners[i].player == players[i], "Invalid winner");
+        }
+        return winners;
     }
 
     function deposit(uint256 assets, address receiver) public override onlyOwner returns (uint256 shares) {

@@ -9,18 +9,23 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-
 contract PoolManager is Ownable{
     using EnumerableSet for EnumerableSet.AddressSet;
     
     event _Deposit(address indexed poolAddress, address indexed receiver, uint256 indexed assets);
     event _Withdraw(address indexed poolAddress, address indexed receiver, uint256 indexed assets);
-    event AddNewPool(address indexed poolAddress);
+    event _Draw(address indexed poolAddress, uint256[] indexed winners, uint256[] indexed prizes);
 
     EnumerableSet.AddressSet private blacklisted;
     EnumerableSet.AddressSet private poolList;
 
     constructor() Ownable(_msgSender()) {}
+
+    function startLottery(address pool, uint256 runningTime) public {
+        require(blacklisted.contains(pool) == false, "this pool has been blacklisted");
+        require(poolList.contains(pool) == true, "this pool is not in the pool list");
+        AbstractPool(pool).startLottery(runningTime);
+    }
 
     function deposit(address pool, uint256 assets, address receiver) public returns (uint256 shares) {
         require(blacklisted.contains(pool) == false, "this pool has been blacklisted");
@@ -48,7 +53,6 @@ contract PoolManager is Ownable{
         require(AbstractPool(pool).owner() == address(this), "pool owner is not this contract");
         AbstractPool(pool).startLottery(runningTime);
         poolList.add(pool);
-        emit AddNewPool(pool);
     }
 
     function removePool(address pool) public onlyOwner {
@@ -111,11 +115,11 @@ contract PoolManager is Ownable{
         return blacklisted.values();
     }
 
-    function getWinner(address pool, uint256 totalPrize, uint256 randomNumber) public onlyOwner returns (uint256[] memory) {
+    function getWinner(address pool, uint256 totalPrize, uint256 randomNumber) public onlyOwner returns (AbstractPool.Winner[] memory) {
         require(blacklisted.contains(pool) == false, "this pool has been blacklisted");
         require(poolList.contains(pool) == true, "this pool is not in the pool list");
-        uint256[] memory prizes = AbstractPool(pool).getWinner(totalPrize, randomNumber);
+        AbstractPool.Winner[] memory winners = AbstractPool(pool).getWinner(totalPrize, randomNumber);
         AbstractPool(pool).setLastDraw();
-        return prizes;
+        return winners;
     }
 }
