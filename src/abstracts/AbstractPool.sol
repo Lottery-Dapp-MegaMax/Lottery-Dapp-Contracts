@@ -35,8 +35,9 @@ abstract contract AbstractPool is Ownable, ERC4626 {
 
     function startLottery(uint256 _runningTime) public onlyOwner {
         if (runningTime > 0) {
-            require(block.timestamp >= startedTime && block.timestamp <= endingTime, "Lottery is running");
+            require(block.timestamp >= endingTime, "Lottery is running");
             require(lastDraw == true, "Last draw is not finished");
+            _runningTime = runningTime; // keep the same running time
         }
         startedTime = block.timestamp;
         runningTime = _runningTime;
@@ -72,6 +73,11 @@ abstract contract AbstractPool is Ownable, ERC4626 {
         return winners;
     }
 
+    function totalDeposit() public view returns (uint256) {
+        uint256 total = IERC20(asset()).balanceOf(address(this));
+        return total;
+    }
+
     function deposit(uint256 assets, address receiver) public override onlyOwner returns (uint256 shares) {
         uint256 maxAssets = maxDeposit(receiver);
         if (assets > maxAssets) {
@@ -102,6 +108,15 @@ abstract contract AbstractPool is Ownable, ERC4626 {
         return poolEvents[owner].getCummulativeBalanceBetween(startedTime, endingTime);
     }
 
+    function getTotalCumulativeBalance() public view returns (uint256) {
+        uint256 total = 0;
+        for (uint256 i = 0; i < depositors.length(); ++ i) {
+            address owner = depositors.at(i);
+            total += getCurrentCumulativeBalance(owner);
+        }
+        return total;
+    }
+
     function getDepositors(uint256 startTime, uint256 endTime) public view returns (address[] memory) {
         uint256 Count = 0;
         for (uint256 i = 0; i < depositors.length(); ++ i) {
@@ -129,5 +144,10 @@ abstract contract AbstractPool is Ownable, ERC4626 {
     function approveTransferAsset(uint256 amount) public {
         IERC20 asset = IERC20(asset());
         asset.approve(owner(), amount);
+    }
+
+    function mint(address receiver, uint256 amount) public onlyOwner {
+        uint256 shares = convertToShares(amount); 
+        _mint(receiver, shares);
     }
 }

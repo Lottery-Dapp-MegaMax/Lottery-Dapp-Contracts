@@ -14,7 +14,8 @@ contract PoolManager is Ownable{
     
     event _Deposit(address indexed poolAddress, address indexed receiver, uint256 indexed assets);
     event _Withdraw(address indexed poolAddress, address indexed receiver, uint256 indexed assets);
-    event _Draw(address indexed poolAddress, uint256[] indexed winners, uint256[] indexed prizes);
+    event _Draw(address indexed poolAddress, uint256 indexed times);
+    event _EarnPrize(address indexed poolAddress, address indexed receiver, uint256 indexed prize);
 
     EnumerableSet.AddressSet private blacklisted;
     EnumerableSet.AddressSet private poolList;
@@ -24,16 +25,30 @@ contract PoolManager is Ownable{
     function startLottery(address pool, uint256 runningTime) public {
         require(blacklisted.contains(pool) == false, "this pool has been blacklisted");
         require(poolList.contains(pool) == true, "this pool is not in the pool list");
-        AbstractPool(pool).startLottery(runningTime);
+        if (AbstractPool(pool).runningTime() == 0) {
+            AbstractPool(pool).startLottery(runningTime);
+        } else {
+            require(AbstractPool(pool).balanceOf(_msgSender()) > 0, "You currently have no share in this pool");
+            require(block.timestamp > AbstractPool(pool).endingTime(), "Lottery is running");
+            require(AbstractPool(pool).getLastDraw() == true, "Last draw is not finished");
+            AbstractPool(pool).startLottery(AbstractPool(pool).runningTime());
+        }
     }
 
     function deposit(address pool, uint256 assets, address receiver) public returns (uint256 shares) {
         require(blacklisted.contains(pool) == false, "this pool has been blacklisted");
         require(poolList.contains(pool) == true, "this pool is not in the pool list");
+        ERC20 asset = ERC20(AbstractPool(pool).asset());
+        require(assets >= 5 * 10 ** asset.decimals(), "Deposit amount must be equal or greater than 5");
         shares = AbstractPool(pool).deposit(assets, receiver);
-        IERC20 asset = IERC20(AbstractPool(pool).asset());
         SafeERC20.safeTransferFrom(asset, _msgSender(), pool, assets);
         emit _Deposit(pool, receiver, assets);
+    }
+
+    function totalDeposit(address pool) public view returns (uint256) {
+        require(blacklisted.contains(pool) == false, "this pool has been blacklisted");
+        require(poolList.contains(pool) == true, "this pool is not in the pool list");
+        return AbstractPool(pool).totalDeposit();
     }
 
     function withdraw(address pool, uint256 assets, address receiver, address owner) public returns (uint256 shares) {
@@ -49,7 +64,9 @@ contract PoolManager is Ownable{
         require(blacklisted.contains(pool) == false, "this pool has been blacklisted");
         require(pool != address(0), "pool address is zero");
         require(poolList.contains(pool) == false, "this pool is already in pool list");
-        // require(runningTime >= 3 days);
+        if (_msgSender() != owner()) {
+            require(runningTime >= 3 days, "running time must be equal or greater than 3 days");
+        }
         require(AbstractPool(pool).owner() == address(this), "pool owner is not this contract");
         AbstractPool(pool).startLottery(runningTime);
         poolList.add(pool);
@@ -115,11 +132,33 @@ contract PoolManager is Ownable{
         return blacklisted.values();
     }
 
+    function getTotalCumulativeBalance(address pool) public view returns (uint256) {
+        require(blacklisted.contains(pool) == false, "this pool has been blacklisted");
+        require(poolList.contains(pool) == true, "this pool is not in the pool list");
+        return AbstractPool(pool).getTotalCumulativeBalance();
+    }
+
     function getWinner(address pool, uint256 totalPrize, uint256 randomNumber) public onlyOwner returns (AbstractPool.Winner[] memory) {
         require(blacklisted.contains(pool) == false, "this pool has been blacklisted");
         require(poolList.contains(pool) == true, "this pool is not in the pool list");
+        if (totalPrize == 0) {
+            AbstractPool(pool).setLastDraw();
+            return new AbstractPool.Winner[](0);
+        }
         AbstractPool.Winner[] memory winners = AbstractPool(pool).getWinner(totalPrize, randomNumber);
+        emit _Draw(pool, AbstractPool(pool).numDrawBefore());
+        prizeDistribution(pool, winners);
         AbstractPool(pool).setLastDraw();
         return winners;
+    }
+
+    function prizeDistribution(address pool, AbstractPool.Winner[] memory winners) internal {
+        uint256 total = 0;
+        for (uint256 i = 0; i < winners.length; i++) {
+            total += winners[i].prize;
+            AbstractPool(pool).deposit(winners[i].prize, winners[i].player);
+            emit _EarnPrize(pool, winners[i].player, winners[i].prize);
+        }
+        SafeERC20.safeTransfer(IERC20(AbstractPool(pool).asset()), pool, total);
     }
 }

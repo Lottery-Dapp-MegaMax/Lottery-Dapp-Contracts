@@ -5,6 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {PoolManager} from "src/PoolManager.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {MyPool} from "src/MyPool.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract DeployScript is Script {
     IERC20 conflux_testnet_usdt_contract;
@@ -16,13 +17,14 @@ contract DeployScript is Script {
         conflux_testnet_usdt_contract = IERC20(0x7d682e65EFC5C13Bf4E394B8f376C48e6baE0355);
         myPoolManager = new PoolManager();
         console.log("myPoolManager created at: %s", address(myPoolManager));
-        MyPool myPool = new MyPool(address(myPoolManager), conflux_testnet_usdt_contract);
-        myPoolManager.addNewPool(address(myPool), 300);
+        // MyPool myPool = new MyPool(address(myPoolManager), conflux_testnet_usdt_contract);
+        // myPoolManager.addNewPool(address(myPool), 300);
         // MyPool myPool2 = new MyPool(address(myPoolManager), conflux_testnet_usdt_contract);
         // myPoolManager.addNewPool(address(myPool2), 60);
         vm.stopBroadcast();
     }
 
-    function run() public {
-    }
+function run() public {
+}
+
 }

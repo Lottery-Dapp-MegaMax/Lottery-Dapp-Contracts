@@ -20,7 +20,7 @@ contract VaultTest is Test {
     function setUp() public {
         myPoolManager = new PoolManager();
         myPool = new MyPool(address(myPoolManager), USDT_Contract);
-        myPoolManager.addNewPool(address(myPool), 4 days);
+        myPoolManager.addNewPool(address(myPool), 300);
         console.log("USDT_Contract.balanceOf(myWallet): ", USDT_Contract.balanceOf(myWallet));
     }
 
@@ -60,5 +60,30 @@ contract VaultTest is Test {
         for (uint256 i = 0; i < blacklistedPool.length; i++) {
             console.log("Blacklisted pool: ", blacklistedPool[i]);
         }
+    }
+
+    function testDraw() public {
+        hoax(myWallet);
+        USDT_Contract.transfer(address(this), 20 * (10 ** 18));
+        console.log(USDT_Contract.balanceOf(address(this)));
+        hoax(myWallet);
+        USDT_Contract.transfer(address(myPoolManager), 10 * (10 ** 18));
+
+        USDT_Contract.approve(address(myPoolManager), 20 * (10 ** 18));
+        myPoolManager.deposit(address(myPool), 10 * (10 ** 18), address(this));
+
+        skip(400);
+        console.log("balance: ", myPool.getCurrentCumulativeBalance(address(this)));
+        console.log("shares: ", myPool.balanceOf(address(this)));
+        console.log("max withdraw: ", myPool.maxWithdraw(address(this)));
+        console.log(USDT_Contract.balanceOf(address(myPool)));
+
+        AbstractPool.Winner[] memory winners = myPoolManager.getWinner(address(myPool), 10 * (10 ** 18), 5);
+        for (uint256 i = 0; i < winners.length; i++) {
+            console.log("Winner: ", winners[i].player, winners[i].prize);
+        }
+        console.log("shares: ", myPool.balanceOf(address(this)));
+        console.log("max withdraw: ", myPool.maxWithdraw(address(this)));
+        console.log(USDT_Contract.balanceOf(address(myPool)));
     }
 }
