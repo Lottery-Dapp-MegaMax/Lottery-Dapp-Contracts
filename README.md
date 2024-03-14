@@ -1,66 +1,11 @@
-## Foundry
+# testnet
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+forge script --rpc-url https://conflux-espace-testnet.rpc.thirdweb.com/ script/script.s.sol:DeployScript --broadcast --legacy --skip-simulation --verifier-url https://evmapi-testnet.confluxscan.io/api/? --verify --slow --retries 100 --delay 30
 
-Foundry consists of:
+add --resume to rerun the previous failure.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+# local test
 
-## Documentation
+forge script --rpc-url [http://127.0.0.1:8545](http://127.0.0.1:8545/) script/script.s.sol:DeployScript --broadcast --legacy --slow
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+forge create src/MyPool.sol:MyPool --rpc-url [http://127.0.0.1:8545](http://127.0.0.1:8545/) --private-key [your private key here] --legacy
